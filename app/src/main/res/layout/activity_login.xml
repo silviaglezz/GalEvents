@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/toolbarLog"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="40dp"
         android:orientation="horizontal">
 
         <TextView
@@ -34,23 +34,25 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="40dp"
         android:layout_centerVertical="true"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginTop="40dp">
 
             <TextView
                 android:id="@+id/tvEmailLog"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.5"
-                android:textSize="16dp"
                 android:text="Email"
-                android:textAlignment="textEnd" />
+                android:textAlignment="textEnd"
+                android:textSize="16dp" />
 
             <EditText
                 android:id="@+id/etEmailLog"
@@ -58,16 +60,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
-                android:textSize="16dp"
                 android:layout_weight="3"
-                android:inputType="textEmailAddress"/>
+                android:inputType="textEmailAddress"
+                android:textSize="16dp" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="30dp"
             android:orientation="horizontal">
 
             <TextView
@@ -75,9 +77,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.5"
-                android:textSize="16dp"
                 android:text="Contraseña"
-                android:textAlignment="textEnd" />
+                android:textAlignment="textEnd"
+                android:textSize="16dp" />
 
             <EditText
                 android:id="@+id/etPassLog"
@@ -85,9 +87,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
-                android:textSize="16dp"
                 android:layout_weight="3"
-                android:inputType="textPassword">
+                android:inputType="textPassword"
+                android:textSize="16dp">
 
             </EditText>
         </LinearLayout>
@@ -97,23 +99,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="40dp"
             android:text="Iniciar sesión" />
+
         <TextView
             android:id="@+id/tvRecoverPass"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Recuperar contraseña"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:text="Recuperar contraseña" />
 
         <TextView
             android:id="@+id/tvCreateUser"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Registrarme"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:text="Registrarme" />
 
         <ProgressBar
             android:id="@+id/progBarLog"
@@ -121,7 +124,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="20dp"
-            android:visibility="invisible"/>
+            android:visibility="invisible" />
 
     </LinearLayout>
 
