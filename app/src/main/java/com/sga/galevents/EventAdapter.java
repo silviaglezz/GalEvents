@@ -43,27 +43,30 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         private TextView tvEventName;
         private TextView tvEventStart;
         private TextView tvEventCategory;
-        private TextView tvEventGenre;
+        //private TextView tvEventGenre;
         //private TextView tvEventSubGenre;
         private ImageView ivEventLogo;
+        private TextView tvVenueCity;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             tvEventName = itemView.findViewById(R.id.tvEventName);
             tvEventStart = itemView.findViewById(R.id.tvEventStart);
             tvEventCategory = itemView.findViewById(R.id.tvEventCategory);
-            tvEventGenre = itemView.findViewById(R.id.tvEventGenre);
+            //tvEventGenre = itemView.findViewById(R.id.tvEventGenre);
             //tvEventSubGenre = itemView.findViewById(R.id.tvEventSubGenre);
             ivEventLogo = itemView.findViewById(R.id.ivEventLogo);
+            tvVenueCity = itemView.findViewById(R.id.tvVenueCity);
 
         }
 
         public void bind(Event event) {
             tvEventName.setText(event.getName());
-            tvEventStart.setText(event.getDates().getStart().getUtc());
+            tvEventStart.setText(event.getDates().getStart().getLocalDate());
             tvEventCategory.setText(event.getClassifications().get(0).getSegment().getName());
-            tvEventGenre.setText(event.getClassifications().get(0).getGenre().getName());
+            //tvEventGenre.setText(event.getClassifications().get(0).getGenre().getName());
             //tvEventSubGenre.setText(event.getClassifications().get(0).getSubgenre().getName());
+            tvVenueCity.setText(event.getEmbedded().getVenues().get(0).getCity().getName());
 
             Picasso.get()
                     .load(event.getImages().get(0).getUrl())

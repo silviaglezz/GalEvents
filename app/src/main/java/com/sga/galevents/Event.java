@@ -10,21 +10,21 @@ public class Event {
     private Dates dates;
     private List<Classifications> classifications;
     private List<Images> images;
-    private Embedded embedded;
+    private _Embedded _embedded;
 
     // Constructor para inicializar un Event con los detalles necesarios
-    public Event(String id, String name, Dates dates, List<Classifications> classifications, List<Images> images, Embedded embedded) {
+    public Event(String id, String name, Dates dates, List<Classifications> classifications, List<Images> images, _Embedded _embedded) {
         this.id = id;
         this.name = name;
         this.dates = dates;
         this.classifications = classifications;
         this.images = images;
-        this.embedded = embedded;
+        this._embedded = _embedded;
     }
 
     // Constructor para inicializar un Event con todos los detalles
     public Event(String id, String name, String start, String category, String genre,
-                 String subGenre, String logo, String venueName, String venueAddress, String venueCity) {
+                 String subGenre, String logo, String venueName, String address, String city) {
         this.id = id;
         this.name = name;
         this.dates = new Dates(new Dates.Start(start));
@@ -37,8 +37,8 @@ public class Event {
         this.images.add(new Images(logo));
 
         List<Venues> venues = new ArrayList<>();
-        venues.add(new Venues(venueName, new Venues.Address(venueAddress), new Venues.City(venueCity)));
-        this.embedded = new Embedded(venues);
+        venues.add(new Venues(venueName, new Venues.Address(address), new Venues.City(city)));
+        this._embedded = new _Embedded(venues);
     }
 
     // Métodos getter y setter
@@ -66,8 +66,8 @@ public class Event {
         return images;
     }
 
-    public Embedded getEmbedded() {
-        return embedded;
+    public _Embedded getEmbedded() {
+        return _embedded;
     }
 
     public static class Dates {
@@ -86,18 +86,18 @@ public class Event {
         }
 
         public static class Start {
-            private String utc;
+            private String localDate;
 
-            public Start(String utc) {
-                this.utc = utc;
+            public Start(String localDate) {
+                this.localDate = localDate;
             }
 
-            public String getUtc() {
-                return utc;
+            public String getLocalDate() {
+                return localDate;
             }
 
-            public void setUtc(String utc) {
-                this.utc = utc;
+            public void setLocalDate(String localDate) {
+                this.localDate = localDate;
             }
         }
     }
@@ -202,10 +202,10 @@ public class Event {
         }
     }
 
-    public static class Embedded {
+    public static class _Embedded {
         private List<Venues> venues;
 
-        public Embedded(List<Venues> venues) {
+        public _Embedded(List<Venues> venues) {
             this.venues = venues;
         }
 
