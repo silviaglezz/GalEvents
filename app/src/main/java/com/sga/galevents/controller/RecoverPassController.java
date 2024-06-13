@@ -18,8 +18,6 @@ public class RecoverPassController {
     }
 
     public void recoverPass(String email){
-
-
         model.existsEmail(email, new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {

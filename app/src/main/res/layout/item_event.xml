@@ -38,6 +38,15 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:paddingBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/tvVenueCity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp"/>
+        <!--
         <TextView
             android:id="@+id/tvEventGenre"
             android:layout_width="match_parent"
@@ -45,7 +54,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:paddingBottom="4dp"/>
-        <!--<TextView
+        <TextView
             android:id="@+id/tvEventSubGenre"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
