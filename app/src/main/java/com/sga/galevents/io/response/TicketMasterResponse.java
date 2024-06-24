@@ -1,6 +1,6 @@
 package com.sga.galevents.io.response;
 
-import com.sga.galevents.Event;
+import com.sga.galevents.model.Event;
 
 import java.util.List;
 

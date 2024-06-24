@@ -1,9 +1,6 @@
 package com.sga.galevents.io;
 
-import com.sga.galevents.Event;
 import com.sga.galevents.io.response.TicketMasterResponse;
-
-import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

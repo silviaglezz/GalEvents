@@ -12,14 +12,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sga.galevents.Event;
 import com.sga.galevents.R;
 import com.sga.galevents.controller.LoginController;
-import com.sga.galevents.io.TicketMasterApiAdapter;
-
-import java.util.ArrayList;
-
-import retrofit2.Call;
 
 public class LoginActivity extends AppCompatActivity{
     EditText etEmailLog, etPassLog;

@@ -1,16 +1,18 @@
-package com.sga.galevents;
+package com.sga.galevents.model;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Event {
+public class Event implements Serializable {
     private String id;
     private String name;
     private Dates dates;
     private List<Classifications> classifications;
     private List<Images> images;
     private _Embedded _embedded;
+    private Boolean favorite;
 
     // Constructor para inicializar un Event con los detalles necesarios
     public Event(String id, String name, Dates dates, List<Classifications> classifications, List<Images> images, _Embedded _embedded) {
@@ -23,11 +25,11 @@ public class Event {
     }
 
     // Constructor para inicializar un Event con todos los detalles
-    public Event(String id, String name, String start, String category, String genre,
-                 String subGenre, String logo, String venueName, String address, String city) {
+    public Event(String id, String name, String start, String startTime, String category, String genre,
+                 String subGenre, String logo, Boolean favorite, String venueName, String address, String city) {
         this.id = id;
         this.name = name;
-        this.dates = new Dates(new Dates.Start(start));
+        this.dates = new Dates(new Dates.Start(start, startTime));
 
         //inicializar la lista y añadir elementos
         this.classifications = new ArrayList<>();
@@ -35,6 +37,8 @@ public class Event {
 
         this.images = new ArrayList<>();
         this.images.add(new Images(logo));
+
+        this.favorite = favorite;
 
         List<Venues> venues = new ArrayList<>();
         venues.add(new Venues(venueName, new Venues.Address(address), new Venues.City(city)));
@@ -70,6 +74,14 @@ public class Event {
         return _embedded;
     }
 
+    public Boolean getFavorite(){
+        return favorite;
+    }
+
+    public void setFavorite(java.lang.Boolean favorite) {
+        this.favorite = favorite;
+    }
+
     public static class Dates {
         private Start start;
 
@@ -87,9 +99,11 @@ public class Event {
 
         public static class Start {
             private String localDate;
+            private String localTime;
 
-            public Start(String localDate) {
+            public Start(String localDate, String localTime) {
                 this.localDate = localDate;
+                this.localTime = localTime;
             }
 
             public String getLocalDate() {
@@ -98,6 +112,14 @@ public class Event {
 
             public void setLocalDate(String localDate) {
                 this.localDate = localDate;
+            }
+
+            public String getLocalTime() {
+                return localTime;
+            }
+
+            public void setLocalTime(String localTime) {
+                this.localTime = localTime;
             }
         }
     }

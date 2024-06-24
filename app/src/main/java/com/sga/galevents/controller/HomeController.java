@@ -1,6 +1,6 @@
 package com.sga.galevents.controller;
 
-import com.sga.galevents.Event;
+import com.sga.galevents.model.Event;
 import com.sga.galevents.model.HomeModel;
 
 import java.util.List;
