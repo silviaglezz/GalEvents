@@ -1,3 +1,4 @@
+
 package com.sga.galevents.model;
 
 import android.os.Handler;
@@ -11,17 +12,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.sga.galevents.Event;
 import com.sga.galevents.io.TicketMasterApiAdapter;
 import com.sga.galevents.io.response.TicketMasterResponse;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +35,10 @@ public class HomeModel {
     private ExecutorService executorService;
     private static final String apiKey = "A2qjk4CKGbBiLT6Oc7YUL8LdrImtdkGI";
     private int citiesProcessed;
-    //private List<Event> events;
 
     public HomeModel(){
         fStore = FirebaseFirestore.getInstance();
         executorService = Executors.newFixedThreadPool(4);
-        //events = new ArrayList<>();
     }
 
     // Método para convertir el formato de la fecha
@@ -60,7 +56,6 @@ public class HomeModel {
 
     //Función para eliminar de la base de datos los eventos pasados
     public void deletePastEvents(DeleteEventsCallback callback) {
-        Log.d("deletePastEvents", "Entramos en deletePastEvents");
         //Fecha actual en el formato adecuado
         DateTimeFormatter sdf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         String currentDate = LocalDate.now().format(sdf);
@@ -159,8 +154,6 @@ public class HomeModel {
 
     //Extraer los datos de la respuesta de TicketMaster
     public void extractEventsData(List<Event> eventList, FetchEventsCallback callback){
-        Log.d("extractEventsData", "Entramos en extractEventsData");
-
         List<Event> processedEvents  = new ArrayList<>();
 
         if (eventList != null && !eventList.isEmpty()){
@@ -171,6 +164,7 @@ public class HomeModel {
                 String id = embeddedEvent.getId();
                 String name = embeddedEvent.getName();
                 String start = embeddedEvent.getDates().getStart().getLocalDate();
+                String startTime = embeddedEvent.getDates().getStart().getLocalTime();
 
                 String category = "";
                 String genre = "";
@@ -187,6 +181,8 @@ public class HomeModel {
                     logo = embeddedEvent.getImages().get(0).getUrl();
                 }
 
+                Boolean favorite = false;
+
                 String venueName = "";
                 String venueAddress = "";
                 String venueCity = "";
@@ -198,7 +194,7 @@ public class HomeModel {
                 }
 
                 // Crear un nuevo objeto Event y añadirlo a la lista
-                Event event = new Event(id, name, start, category, genre, subgenre, logo, venueName, venueAddress, venueCity);
+                Event event = new Event(id, name, start, startTime, category, genre, subgenre, logo, favorite, venueName, venueAddress, venueCity);
                 processedEvents.add(event);
             }
         }
@@ -218,98 +214,75 @@ public class HomeModel {
 
     //Funcion para guardar los eventos en la base de datos
     public void saveEvents(List<Event> eventList, SaveEventsCallback callback) {
-        Log.d("saveEvents", "Entramos en saveEvents");
-
-        List<Task<DocumentReference>> tasks = new ArrayList<>();
+        List<Task<Void>> tasks = new ArrayList<>();
 
         for (Event event : eventList) {
-            Task<DocumentReference> task = fStore.collection("events")
-                    .whereEqualTo("id", event.getId())
-                    .get()
-                    .continueWithTask(task1 -> {
-                        if (task1.isSuccessful() && !task1.getResult().isEmpty()) {
-                            Log.d("saveEvents", "El evento con nombre " + event.getName() + " ya existe.");
-                            return Tasks.forResult(null);
-                        } else {
-                            // Mapa para guardar los datos del venue en la base de datos
-                            Map<String, Object> venueMap = new HashMap<>();
-                            venueMap.put("name", event.getEmbedded().getVenues().get(0).getName());
-                            venueMap.put("address", event.getEmbedded().getVenues().get(0).getAddress().getLine1());
-                            venueMap.put("city", event.getEmbedded().getVenues().get(0).getCity().getName());
-
-                            // Guardar el mapa en la colección de venues
-                            return fStore.collection("venues").add(venueMap)
-                                    .continueWithTask(venueTask -> {
-                                        if (venueTask.isSuccessful()) {
-                                            // Obtener el id del documento
-                                            String venueId = venueTask.getResult().getId();
-
-                                            // Convertir la fecha antes de guardarla
-                                            String formattedStart = convertDateFormat(event.getDates().getStart().getLocalDate());
-
-                                            // Mapa para guardar los datos del evento
-                                            Map<String, Object> eventMap = new HashMap<>();
-                                            eventMap.put("id", event.getId());
-                                            eventMap.put("name", event.getName());
-                                            eventMap.put("start", formattedStart);
-                                            eventMap.put("category", event.getClassifications().get(0).getSegment().getName());
-                                            eventMap.put("genre", event.getClassifications().get(0).getGenre().getName());
-                                            eventMap.put("subgenre", event.getClassifications().get(0).getSubGenre().getName());
-                                            eventMap.put("logo", event.getImages().get(0).getUrl());
-                                            eventMap.put("venueRef", venueId);
-
-                                            // Guardar el mapa en la colección de eventos
-                                            return fStore.collection("events").add(eventMap);
-                                        } else {
-                                            return Tasks.forException(venueTask.getException());
-                                        }
-                                    });
-                        }
-                    }).addOnFailureListener(e -> Log.e("saveEvents", "Error al guardar el evento: ", e));
+            Task<Void> task = saveEventToFireStore(event);
             tasks.add(task);
         }
 
-        Tasks.whenAllComplete(tasks).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Log.d("saveEvents", "Todos los eventos procesados.");
-                callback.onSuccess();
-            } else {
-                Log.e("saveEvents", "Error al procesar algunos eventos.");
-                callback.onFailure("Error al procesar algunos eventos.");
-            }
-
-            //Incrementar el contador de ciudades
-            citiesProcessed++;
-
-            Log.d("saveEventsCities", "Ciudades procesadas: " + citiesProcessed);
-
-            //Verificar si se procesaron todas las ciudades con datos
-            if (citiesProcessed == eventList.size()){
-                getEvents(new GetEventsCallback() {
-                    @Override
-                    public void onSuccess(List<Event> eventList) {
-                        Log.d("saveEvents", "Eventos obtenidos con éxito después de guardar: " + eventList.size());
-                    }
-
-                    @Override
-                    public void onFailure(String errorMessage) {
-                        Log.e("saveEvents", "Error al obtener eventos después de guardar: " + errorMessage);
-                    }
+        Tasks.whenAllComplete(tasks)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("saveEvents", "Todos los eventos procesados.");
+                    callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("saveEvents", "Error al procesar algunos eventos.");
+                    callback.onFailure("Error al procesar algunos eventos.");
                 });
-            }else{
-                Log.e("saveEvents", "Error al procesar algunos eventos.");
+    }
+
+    private Task<Void> saveEventToFireStore(Event event){
+        return fStore.runTransaction(transaction -> {
+            // Verificar si el evento ya existe
+            DocumentReference eventRef = fStore.collection("events").document(event.getId());
+            DocumentSnapshot snapshot = transaction.get(eventRef);
+
+            if (snapshot.exists()) {
+                // Evento ya existe, no hacer nada
+                Log.d("saveEventToFirestore", "El evento con ID " + event.getId() + " ya existe");
+                return null; // Retornar nulo para salir de la transacción sin hacer cambios
+            } else {
+                // Evento no existe, guardarlo
+                Map<String, Object> venueMap = new HashMap<>();
+                venueMap.put("name", event.getEmbedded().getVenues().get(0).getName());
+                venueMap.put("address", event.getEmbedded().getVenues().get(0).getAddress().getLine1());
+                venueMap.put("city", event.getEmbedded().getVenues().get(0).getCity().getName());
+
+                // Guardar el mapa en la colección de venues
+                DocumentReference venueRef = fStore.collection("venues").document();
+                transaction.set(venueRef, venueMap);
+
+                // Convertir la fecha antes de guardarla
+                String formattedStart = convertDateFormat(event.getDates().getStart().getLocalDate());
+
+                // Mapa para guardar los datos del evento
+                Map<String, Object> eventMap = new HashMap<>();
+                eventMap.put("id", event.getId());
+                eventMap.put("name", event.getName());
+                eventMap.put("start", formattedStart);
+                eventMap.put("startTime", event.getDates().getStart().getLocalTime());
+                eventMap.put("category", event.getClassifications().get(0).getSegment().getName());
+                eventMap.put("genre", event.getClassifications().get(0).getGenre().getName());
+                eventMap.put("subgenre", event.getClassifications().get(0).getSubGenre().getName());
+                eventMap.put("logo", event.getImages().get(0).getUrl());
+                eventMap.put("venueRef", venueRef.getId());
+                eventMap.put("favorite", event.getFavorite());
+
+                // Guardar el mapa en la colección de eventos
+                DocumentReference eventDocRef = fStore.collection("events").document(event.getId());
+                transaction.set(eventDocRef, eventMap);
+
+                return null; // Retornar nulo para salir de la transacción después de guardar el evento
             }
         });
     }
 
     //Funcion para coger 5 eventos de la base de datos y mostrarlos por pantalla
     public void getEvents(GetEventsCallback callback) {
-        Log.d("getEvents", "Entramos en getEvents");
-
         List<Event> events = new ArrayList<>();
 
         fStore.collection("events")
-                .limit(5)//limitar a los 5 primeros eventos
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -325,11 +298,13 @@ public class HomeModel {
                                 String eventId = document.getId();
                                 String eventName = document.getString("name");
                                 String eventStart = document.getString("start");
+                                String eventStartTime = document.getString("startTime");
                                 String eventVenueRef = document.getString("venueRef");
                                 String eventCategory = document.getString("category");
                                 String eventGenre = document.getString("genre");
                                 String eventSubGenre = document.getString("subgenre");
                                 String eventLogo = document.getString("logo");
+                                Boolean eventFavorite = document.getBoolean("favorite");
 
                                 // Crear una tarea para obtener la información del venue
                                 Task<DocumentSnapshot> venueTask = fStore.collection("venues").document(eventVenueRef).get();
@@ -342,12 +317,16 @@ public class HomeModel {
                                         String venueCity = venueDocument.getString("city");
 
                                         // Crear un objeto Event y agregarlo a la lista
-                                        Event event = new Event(eventId, eventName, eventStart, eventCategory, eventGenre, eventSubGenre, eventLogo, venueName, venueAddress, venueCity);
+                                        Event event = new Event(eventId, eventName, eventStart, eventStartTime, eventCategory, eventGenre, eventSubGenre, eventLogo, eventFavorite, venueName, venueAddress, venueCity);
                                         events.add(event);
 
                                         if (events.size() == result.size()) {
-                                            // Notificar al adaptador que los datos han cambiado
-                                            callback.onSuccess(events);
+                                            //Barajar la lista de eventos
+                                            Collections.shuffle(events);
+
+                                            //Seleccionar los 5 primeros eventos de la lista barajada
+                                            List<Event> randomEvents = events.subList(0, Math.min(5, events.size()));
+                                            callback.onSuccess(randomEvents);
                                         }
                                     }
                                 }).addOnFailureListener(e -> {
@@ -360,8 +339,6 @@ public class HomeModel {
                             //Cuando todas las tareas de obtener venues se completen
                             Tasks.whenAllComplete(tasks).addOnCompleteListener(allTasks -> {
                                 Log.d("getEvents", "Todos los venues obtenidos");
-                                // Notificar al adaptador que los datos han cambiado
-                                //adapter.notifyDataSetChanged();
                             });
 
                         }else{

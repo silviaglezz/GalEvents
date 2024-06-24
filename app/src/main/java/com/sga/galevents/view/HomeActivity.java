@@ -1,8 +1,6 @@
 package com.sga.galevents.view;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -10,51 +8,35 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.sga.galevents.Event;
-import com.sga.galevents.EventAdapter;
+import com.sga.galevents.model.Event;
+import com.sga.galevents.io.EventAdapter;
+import com.sga.galevents.controller.EventDetailsDialogFragment;
 import com.sga.galevents.R;
 import com.sga.galevents.controller.HomeController;
-import com.sga.galevents.io.TicketMasterApiAdapter;
-import com.sga.galevents.io.response.TicketMasterResponse;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class HomeActivity extends AppCompatActivity{
+public class HomeActivity extends AppCompatActivity implements EventAdapter.OnEventClickListener{
     private RecyclerView rvEvents;
     private EventAdapter adapter;
     private List<Event> events;
     private HomeController controller;
     private FirebaseFirestore fStore;
+    private boolean firstTime;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
         fStore = FirebaseFirestore.getInstance();
+        firstTime = false;
 
         rvEvents = findViewById(R.id.rvEvents);
         events = new ArrayList<>();
 
-        adapter = new EventAdapter(events);
+        adapter = new EventAdapter(events, this);
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
         rvEvents.setAdapter(adapter);
 
@@ -65,12 +47,14 @@ public class HomeActivity extends AppCompatActivity{
         fStore.collection("events").get().addOnCompleteListener(task ->{
             if (task.isSuccessful() && task.getResult().isEmpty()){
                 //Si no hay eventos, buscar eventos en las ciudades y guardarlos
+                firstTime = true;
                 searchEventsInCities();
             }else{
                 //Si hay eventos, mostrarlos por pantalla
                 getEvents();
             }
         });
+        searchEventsInCities();
         deletePastEvents();
     }
 
@@ -87,10 +71,13 @@ public class HomeActivity extends AppCompatActivity{
         controller.searchEventsInCities(cities, countryCode, radius, unit, locale, maxRetries, new HomeController.SearchEventsCallback() {
             @Override
             public void onSuccess(List<Event> eventList) {
-                // Actualizar la lista de eventos y notificar al adaptador
-                events.clear();
-                events.addAll(eventList);
-                adapter.notifyDataSetChanged();
+                if (firstTime) {
+                    firstTime = false;
+                    // Actualizar la lista de eventos y notificar al adaptador
+                    events.clear();
+                    events.addAll(eventList);
+                    adapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -141,5 +128,13 @@ public class HomeActivity extends AppCompatActivity{
                 Log.e("HomeActivity", "Error al eliminar eventos pasados: " + errorMessage, throwable);
             }
         });
+    }
+
+    //Método que se llama cuando se hace click en un evento
+    public void onEventClick(Event event) {
+        // Mostrar el diálogo con los detalles del evento
+        EventDetailsDialogFragment dialogFragment = EventDetailsDialogFragment.newInstance(event);
+
+        dialogFragment.show(getSupportFragmentManager(), "event_details");
     }
 }
